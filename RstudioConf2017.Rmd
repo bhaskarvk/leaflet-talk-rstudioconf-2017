@@ -88,13 +88,13 @@ devtools::install_github("rstudio/leaflet")
 
 - Data can be organized into groups which allows bulk operations on grouped data.
 
-- Many 3rd-Party vendors (commertial and open-source) provide add-ons on top of Leaflet. e.g. ESRI, Mapbox, GIBs. 
+- Many 3rd-Party vendors (commercial and open-source) provide add-ons on top of Leaflet. e.g. ESRI, Mapbox, GIBs. 
 
 ---
 
 class: inverse, center, middle
 
-# BEGINEER
+# BEGINNER
 
 ---
 
@@ -279,7 +279,7 @@ l %>%
 
 - Can have labels and popups whose content can be derived from data.
 
-- Can have their appreance customized using data.
+- Can have their appearance customized using data.
 
 - Can be grouped for bulk operations.
 
@@ -417,7 +417,7 @@ class: inverse, center, middle
 
 - Which means ...
 
-  + You can't use tile services which provide tiles in non-spherical-mercator projections.
+  + You can't use tile services which provide tiles in non-spherical-Mercator projections.
 
   + You need to convert any vector/raster data in any non-epsg:4326 to epsg:4326 before adding to the leaflet map.
 
@@ -425,7 +425,7 @@ class: inverse, center, middle
 
 # Proj4Leaflet
 
-- Enter [Proj4Leaflet](https://github.com/kartena/Proj4Leaflet/) a leaflet plugin allowing use of [proj4js](https://github.com/proj4js/proj4js) to display map in non-spherical-mercator projection.
+- Enter [Proj4Leaflet](https://github.com/kartena/Proj4Leaflet/) a leaflet plugin allowing use of [proj4js](https://github.com/proj4js/proj4js) to display map in non-spherical-Mercator projection.
 
 - Basic use 
 
@@ -434,9 +434,9 @@ leaflet(options =
           leafletOptions(crs = leafletCRS()))
 ```
 
-- So now you can display data/tiles in a non-spherical-mercator projection.
+- So now you can display data/tiles in a non-spherical-Mercator projection.
 
-- But you still need to specify vector/raster data in EPSG:4326 (lat/lon) which will get interally converted to the custom projection specified.
+- But you still need to specify vector/raster data in EPSG:4326 (lat/lon) which will get internally converted to the custom projection specified.
 
 - Another caveat: You can have only one projection at a time which is set during initialization. To change projection you need to destroy and rebuild the map.
 
@@ -612,7 +612,7 @@ l %>%
 
 - Create [Heatmap](http://rpubs.com/bhaskarvk/leaflet-heatmap) from point data.
 
-- [Search](http://rpubs.com/bhaskarvk/leaflet-search) Markers. Geolocate using OSM Nominatum API.
+- [Search](http://rpubs.com/bhaskarvk/leaflet-search) Markers. Geo-locate using OSM Nominatum API.
 
 - [Pulsating](http://rpubs.com/bhaskarvk/leaflet-pulseIcon) and [Weather](http://rpubs.com/bhaskarvk/leaflet-weather) icons for markers.
 
@@ -758,7 +758,7 @@ class: inverse, center, middle
 
 - Information Security Data Scientist!
 
-- Thanks [Bob Rudis](https://rud.is/b/) for GIS/mapping mentorship.
+- Thanks [Bob Rudis](https://rud.is/b/) for GIS/mapping mentoring.
 
 - Thanks [Joe Cheng](https://twitter.com/jcheng) for opportunity to contribute to leaflet.
 
