@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Web Mapping in R</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Bhaskar Karambelkar" />
+    <link href="libs/remark-css/example.css" rel="stylesheet" />
+    <script src="libs/htmlwidgets/htmlwidgets.js"></script>
+    <script src="libs/pymjs/pym.v1.min.js"></script>
+    <script src="libs/widgetframe-binding/widgetframe.js"></script>
+    <link rel="stylesheet" href="style.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse
+
+# Web Mapping in R
+## using Leaflet
+### Bhaskar Karambelkar
+### 2017/01/13
+
+---
+
+
+
+
+
+
+background-image: url(http://leafletjs.com/docs/images/logo.png)
+
+class: center, middle
+
+&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;
+An open-source JavaScript library for interactive maps.
+
+---
+
+# Installation
+
+Install the **leaflet** package from [Github](https://github.com/rstudio/leaflet)&lt;sup&gt;1&lt;/sup&gt;:
+
+
+```r
+devtools::install_github("rstudio/leaflet")
+```
+
+- Is a `htmlwidget` which allows you to build dynamic interactive maps using the Javascript library.
+
+- Based on version 0.7.x of the Leaflet Javascript library&lt;sup&gt;2&lt;/sup&gt;.
+
+- Other packages you will need:&lt;br/&gt; `sp`, `rgdal`, `rgeos`, `raster`, `rmapshaper`, `tigris`, `acs`, `sf`, `mapview`, `geojson`, `geojsonio`.
+
+.footnote[
+[1] The dev. version on Github is significantly ahead of the CRAN version in terms of features and bug-fixes. This version will be pushed to CRAN soon. 
+
+[2] The latest version of LeafletJS is 1.x and the R package will be ported to 1.x eventually/soon.
+]
+
+---
+
+# Map Components
+
+- The `leaflet` map object (SVG).
+
+- Tile Layers. &lt;sup&gt;1&lt;/sup&gt;
+
+- Vector Data Layers (points, lines, circles, rectangles, polygons).
+
+- Raster Data Layers.
+
+- Popups and labels.
+
+- Controls (zoom control, layer control, buttons, attribution, legends).
+
+- Custom controls and layers via lots and lots of  [plugins](http://www.leafletjs.com/plugins.html).
+
+.footnote[
+[1] [How web maps work](https://www.mapbox.com/help/how-web-maps-work/).
+]
+
+---
+
+# Advanced Concepts
+
+- Visualizations are organized into various panes. Different panes have different zIndex for overlay.
+
+- Events are emitted for various actions and can be acted upon by registering event listeners for appropriate events.
+
+- Data can be organized into groups which allows bulk operations on grouped data.
+
+- Many 3rd-Party vendors (commertial and open-source) provide add-ons on top of Leaflet. e.g. ESRI, Mapbox, GIBs. 
+
+---
+
+class: inverse, center, middle
+
+# BEGINEER
+
+---
+
+# Building a Map
+
+
+```r
+leaflet(data) | leafletProxy() %&gt;% 
+  
+  
+  setView(lat, lon, zoom) # Initial View OR
+  fitBounds(lat_se, lon_se, latnw, lon_nw) # Initial Bounds
+  setMaxBounds(lat_se, lon_se, latnw, lon_nw) # Max Bounds
+  
+  addTiles() | addProviderTiles() | addWMSTiles() #Tiles
+  
+  addMarkers() | addCircleMarkers() |
+    addAwesomeMarkers() | addLabelOnlyMarkers() # Markers
+  
+  addPolylines() | addCircles() |
+  addRectangles() | addPolygons() # Shapes
+  
+  addRasterImage(image) # Raster Data
+  
+  addLegend() | addLayersControl() | addControl() # Controls
+```
+
+.footnote[
+- A Map is built by piping (`%&gt;%`) several add* methods.
+
+- `leaflet()`/`addXXX()` methods take an optional `options` argument for customization.
+]
+
+---
+
+# Minimal Example
+
+
+```r
+library(leaflet)
+leaflet()
+```
+
+<div id="htmlwidget-f8c2ebb052e2fc3a5b63" style="width:100%;height:275px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f8c2ebb052e2fc3a5b63">{"x":{"url":"widget_eg1.html","options":{"xdomain":"*","allowfullscreen":false}},"evals":[],"jsHooks":[]}</script>
+
+Wait, What? Where's my map?
+
+---
+
+# Tiles
+
+
+```r
+leaflet() %&gt;%
+  addTiles()
+```
+
+<div id="htmlwidget-791cdd2bb1334bb0749a" style="width:100%;height:275px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-791cdd2bb1334bb0749a">{"x":{"url":"widget_eg2.html","options":{"xdomain":"*","allowfullscreen":false}},"evals":[],"jsHooks":[]}</script>
+
+- Defaults to OpenStreetMap tiles. Custom URL can be provided via the `urlTemplate` param.
+- `tileOptions()` can be used for customizing the tile layer.
+
+---
+
+# Provider Tiles
+
+
+```r
+leaflet() %&gt;%
+  addProviderTiles(providers$CartoDB.DarkMatter, group="Dark") %&gt;%
+  addProviderTiles(providers$CartoDB.Positron, group="Light") %&gt;%
+  addLayersControl(baseGroups=c('Dark','Light'))
+```
+
+<div id="htmlwidget-9c60e7296db479266f38" style="width:100%;height:275px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-9c60e7296db479266f38">{"x":{"url":"widget_eg3.html","options":{"xdomain":"*","allowfullscreen":false}},"evals":[],"jsHooks":[]}</script>
+
+
+There are more than 100 tile providers available via the `providers` list.
+
+---
+
+# Markers
+
+- Represent unique locations on the map.
+
+- Added using `addMarkers`, `addCircleMarkers`, `addAwesomeMarkers`, `addLabelOnlyMarkers`.
+
+- Input can be vectors of lat/lon coordinates, data.frame, `sp::SpatialPoints`, `sp::SpatialPointsDataFrame`. 
+
+- Can have labels, and popups whose content can be derived from the data.
+
+- Can be toggled using grouping.
+
+- Can be clustered for better performance and visual aesthetics.
+
+---
+
+# Adding Markers
+
+
+```r
+leaflet(data) %&gt;%
+  
+  addMarkers(
+    lat = ~latitude, lon = ~longitude,
+    
+    options = markerOptions(),
+  
+    label=~label, labelOptions = labelOptions(),
+    popup=~popup, popupOptions = popupOptions(),
+    
+    clusterOptions = clusterOptions(),
+    
+    group = 'Group-A')
+
+  # Similarly 
+  addCircleMarkers()  # Fixed scale Circles
+  addAwesomeMarkers() # More choices for icons
+  addLabelOnlyMarkers() # No icon
+```
+
+---
+
+# Markers Example
+
+
+```r
+quakes.df &lt;- quakes %&gt;% dplyr::mutate(
+    mag.level = cut(mag,c(3.5,4.5,5.5,6.5),
+    labels = c('&gt; 3.5 &amp; &lt;=4.5', '&gt;4.5 &amp; &lt;=5.5', '&gt;5.5 &amp; &lt;=6.5'))) %&gt;%
+  split(.$mag.level)
+
+l &lt;- leaflet() %&gt;%
+  addProviderTiles(providers$Esri.OceanBasemap)
+
+names(quakes.df) %&gt;%
+  purrr::walk( function(df) {
+    l &lt;&lt;- l %&gt;%
+      addMarkers(data=quakes.df[[df]], lng=~long, lat=~lat,
+                 label=~as.character(mag), popup=~as.character(mag),
+                 group = df,
+                 clusterOptions = markerClusterOptions())
+  })
+
+l &lt;- l %&gt;%
+  addLayersControl(
+    overlayGroups = names(quakes.df),
+    options = layersControlOptions(collapsed = FALSE)) %&gt;%
+  addMiniMap(tiles = providers$Esri.OceanBasemap, width = 120, height=80)
+```
+
+---
+
+# Markers Example
+
+<div id="htmlwidget-18f9d0752abbf63b0ec7" style="width:100%;height:440px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-18f9d0752abbf63b0ec7">{"x":{"url":"widget_eg5.1.html","options":{"xdomain":"*","allowfullscreen":false}},"evals":[],"jsHooks":[]}</script>
+
+---
+
+# Shapes
+
+- Can be lines, circles, rectangles, polygons.
+
+- Added using `addPolyLines`, `addCircles`, `addRectangles`, and `addPolygons`.
+
+- For polylines: Input can be `sp::Lines`, `sp::SpatialLines`, `sp::SpatialLinesDataFrame`. 
+
+- For polygons: Input can be `sp::Polygons`, `sp::SpatialPolygons`, `sp::SpatialPolygonsDataFrame`.
+
+- Can have labels and popups whose content can be derived from data.
+
+- Can have their appreance customized using data.
+
+- Can be grouped for bulk operations.
+
+- Can be highlighted on mouse-over.
+
+---
+
+# Adding Shapes
+
+
+```r
+leaflet(data) %&gt;%
+  addPolygons(
+    label=~label, labelOptions = labelOptions(),
+    popup=~popup, popupOptions = popupOptions(),
+             
+    # Shape Options
+    options = pathOptions(),
+    weight = 1, opacity=0.8, color = "#000000",
+    fillColor="#ff0000", fillOpacity=0.7,
+             
+    # Highlighting on mouse-over
+    highlightOptions = highlightOptions(
+      color='#00ff00', weight = 2,
+      opacity = 1, fillOpacity = 1,
+      bringToFront = TRUE, sendToBack = TRUE),
+             
+    group = 'Group-A')
+
+  #Similarly
+  addCircles()
+  addPolylines()
+  addRectangles()
+```
+
+---
+
+# Shapes Example
+
+
+
+
+```r
+# spdf is a sp::SpatialPolygonsDataFrame
+qpal &lt;- colorQuantile(rev(viridis::viridis(5)),
+                      spdf$POPDENSITY, n=5)
+
+l &lt;- leaflet(spdf, options =
+               leafletOptions(attributionControl = FALSE, minzoom=1.5)) %&gt;%
+  addPolygons(
+    label=~stringr::str_c(
+      NAME, ' ',
+      formatC(POPDENSITY, big.mark = ',', format='d')),
+    labelOptions= labelOptions(direction = 'auto'),
+    weight=1,color='#333333', opacity=1,
+    fillColor = ~qpal(POPDENSITY), fillOpacity = 1,
+    highlightOptions = highlightOptions(
+      color='#000000', weight = 2,
+      bringToFront = TRUE, sendToBack = TRUE)
+    ) %&gt;%
+  addLegend(
+    "topright", pal = qpal, values = ~POPDENSITY,
+    title = htmltools::HTML("Population Density&lt;br/&gt;(2005)"),
+    opacity = 1 )
+```
+
+---
+
+# Shapes Example
+
+<div id="htmlwidget-cdd34e662f9443268cdd" style="width:95%;height:400px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-cdd34e662f9443268cdd">{"x":{"url":"widget_eg7.2.html","options":{"xdomain":"*","allowfullscreen":false}},"evals":[],"jsHooks":[]}</script>
+
+- Performance Tip: Use `rmapshaper::ms_simplify` with impunity!
+
+---
+
+# Other Misc. Stuff
+
+- `addRasterImage` for adding raster image data. [Example](https://rstudio.github.io/leaflet/raster.html).
+
+- `addMiniMap` for a small map inside the main map at a zoom offset. [Example](http://rpubs.com/bhaskarvk/leaflet-minimap).
+
+- `addMeasure` to measure distances/area. [Example](http://rpubs.com/bhaskarvk/leaflet-measure).
+
+- `addGraticule` adds a graticule. [Example](http://rpubs.com/bhaskarvk/leaflet-graticule).
+
+- `addEasyButton`/`addEasyButtonBar` for customized buttons [Example](http://rpubs.com/bhaskarvk/easybutton).
+
+- `addControl` for custom Control element.
+
+- `addScaleBar` to display a scale.
+
+---
+
+class: inverse, center, middle
+
+# INTERMEDIATE
+
+---
+
+# Projections
+
+- ALL MAPS OF EARTH ARE WRONG! Obligatory [XKCD](http://xkcd.com/977/) ref.
+
+- By Default leaflet ...
+
+  + uses [EPSG:3857](http://epsg.io/3857) (a.k.a. Spherical Mercator) projection to display data/tiles.
+
+  + expects tiles in EPSG:3857.
+
+  + expects input vector/raster data in lat/lon [EPSG:4326](http://epsg.io/4326) and internally converts them to EPSG:3857 before plotting.
+
+- Which means ...
+
+  + You can't use tile services which provide tiles in non-spherical-mercator projections.
+
+  + You need to convert any vector/raster data in any non-epsg:4326 to epsg:4326 before adding to the leaflet map.
+
+---
+
+# Proj4Leaflet
+
+- Enter [Proj4Leaflet](https://github.com/kartena/Proj4Leaflet/) a leaflet plugin allowing use of [proj4js](https://github.com/proj4js/proj4js) to display map in non-spherical-mercator projection.
+
+- Basic use 
+
+
+```r
+leaflet(options = 
+          leafletOptions(crs = leafletCRS()))
+```
+
+- So now you can display data/tiles in a non-spherical-mercator projection.
+
+- But you still need to specify vector/raster data in EPSG:4326 (lat/lon) which will get interally converted to the custom projection specified.
+
+- Another caveat: You can have only one projection at a time which is set during initialization. To change projection you need to destroy and rebuild the map.
+
+---
+
+# Projections Example 1.
+
+
+
+
+```r
+crs.molvidde &lt;- leafletCRS(
+  crsClass="L.Proj.CRS", code='ESRI:53009',
+  proj4def= '+proj=moll +lon_0=0 +x_0=0 +y_0=0 +a=6371000 +b=6371000 +units=m +no_defs',
+  resolutions = c(65536, 32768, 16384, 8192, 4096, 2048))
+
+l &lt;- leaflet(
+  spdf,
+  options = leafletOptions(
+    maxZoom = 5, crs= crs.molvidde, attributionControl = FALSE)) %&gt;%
+  addGraticule(style= list(color= '#999', weight= 0.5, opacity= 1)) %&gt;%
+  addGraticule(sphere = TRUE,
+               style= list(color= '#777', weight= 1, opacity= 0.25)) %&gt;%
+  addPolygons(
+    label=~stringr::str_c(
+      NAME, ' ', formatC(POPDENSITY, big.mark = ',', format='d')),
+    labelOptions= labelOptions(direction = 'auto'),
+    weight=1,color='#ffffff', opacity=1,
+    fillColor = ~qpal(POPDENSITY), fillOpacity = 1,
+    highlightOptions = highlightOptions(
+      color='#000000', weight = 2,
+      bringToFront = TRUE, sendToBack = TRUE)) 
+```
+
+---
+
+# Projections Example 1.
+
+<div id="htmlwidget-e2e875f950318b8ad5e8" style="width:100%;height:440px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-e2e875f950318b8ad5e8">{"x":{"url":"widget_eg9.3.html","options":{"xdomain":"*","allowfullscreen":false}},"evals":[],"jsHooks":[]}</script>
+
+---
+
+# Projections Example 2.
+
+
+```r
+spdf &lt;- rmapshaper::ms_simplify(albersusa::usa_composite())
+pal &lt;- colorNumeric(palette = "Blues", domain = spdf@data$pop_2014)
+
+crs.laea &lt;- leafletCRS(
+  crsClass="L.Proj.CRS", code='EPSG:2163',
+  proj4def='+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +a=6370997 +b=6370997 +units=m +no_defs',
+  resolutions = c(65536, 32768, 16384, 8192, 4096, 2048,1024, 512, 256, 128))
+
+l &lt;- leaflet(
+  options= leafletOptions(
+    worldCopyJump = FALSE, crs=crs.laea, attributionControl = FALSE)) %&gt;%
+  addPolygons(
+    data=spdf, label=~stringr::str_c(
+      name, ' ', formatC(pop_2014, big.mark = ',', format='d')),
+    labelOptions= labelOptions(direction = 'auto'),
+    weight = 1, color = "#000000",
+    fillColor=~pal(pop_2014), fillOpacity=0.7,
+    highlightOptions = highlightOptions(
+      color='#ff0000', opacity = 1, weight = 2, fillOpacity = 1,
+      bringToFront = TRUE, sendToBack = TRUE))
+```
+
+---
+
+# Projections Example 2.
+
+<div id="htmlwidget-6ca71ee64f8545d89b3d" style="width:100%;height:400px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-6ca71ee64f8545d89b3d">{"x":{"url":"widget_eg10.1.html","options":{"xdomain":"*","allowfullscreen":false}},"evals":[],"jsHooks":[]}</script>
+
+---
+
+# Projections Example 3.
+
+
+
+
+
+```r
+l &lt;- leaflet(
+  options=leafletOptions(
+    crs = leafletCRS("L.CRS.Simple"),
+    minZoom = -2, maxZoom = -2,
+    dragging = FALSE, zoomControl = FALSE, attributionControl = FALSE)) %&gt;%
+  addPolygons(
+    data=FiveThirtyEightElectoralCollege,
+    weight=1,color='#000000', fillOpacity = 0.5, opacity=0.2,
+    fillColor= ~factpal(state)) %&gt;%
+  addPolygons(
+    data=FiveThirtyEightElectoralCollege.states, group = 'states',
+    weight=2,color='#000000',
+    fill = T, opacity = 1, fillOpacity = 0,
+    highlightOptions = highlightOptions(weight = 4)) %&gt;%
+  addLabelOnlyMarkers(
+    data=FiveThirtyEightElectoralCollege.centers,
+    label = ~as.character(state),
+    labelOptions = labelOptions(
+      noHide = 'T', textOnly = T,
+      offset=c(-8,-20), textsize = '12px'))
+```
+
+---
+
+# Projections Example 3
+
+<div id="htmlwidget-ce17807da79e5fa403f4" style="width:100%;height:450px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-ce17807da79e5fa403f4">{"x":{"url":"widget_eg11.2.html","options":{"xdomain":"*","allowfullscreen":false}},"evals":[],"jsHooks":[]}</script>
+
+---
+
+# Shiny
+
+- Use `leafletProxy()` to update already existing map.
+
+- Use `clear*` methods to remove stuff already on a map.
+
+- leaflet package traps many leaflet [events](http://leafletjs.com/reference.html#map-events) and makes then available as shiny events.
+
+- Use `observeEvent(input$&lt;MAP_ID&gt;_&lt;EVENT_NAME&gt;)` to act on these events.
+
+---
+
+# leaflet.extras
+
+- [R package](https://bhaskarvk.github.io/leaflet.extras/) that enhances the `leaflet` package. Developed by yours truly to integrate the plethora of leaflet plugins available.&lt;sup&gt;1&lt;/sup&gt;
+
+-  Not yet on CRAN.
+  `devtools::install_github('bhaskarvk/leaflet.extras')`
+
+- Actively being developed and maintained. Contributions welcome.
+
+- `leaflet` package will be stable and `leaflet.extras` will be very dynamic.
+
+.footnote[
+[1] I also have [leaflet.esri](https://bhaskarvk.github.io/leaflet.esri/) and [leaflet.mapbox](https://bhaskarvk.github.io/leaflet.mapbox/) packages under heavy development.
+]
+
+---
+
+# leaflet.extras
+
+- Add/Modify/delete/style markers/shapes using [Leaflet.Draw](http://rpubs.com/bhaskarvk/leaflet-draw).
+
+- Add [GeoJSON](http://rpubs.com/bhaskarvk/geojsonv2), [TopoJSON](http://rpubs.com/bhaskarvk/topojsonv2), [KML](http://rpubs.com/bhaskarvk/kml), [GPX](http://rpubs.com/bhaskarvk/gpx), [CSV](http://rpubs.com/bhaskarvk/csv) files directly.
+  + Customizable Markers and Shapes
+  + Choropleths from polygon data w/ auto legends and bi-directional highlighting
+  + Popup showing properties in a tables
+
+- Create [Heatmap](http://rpubs.com/bhaskarvk/leaflet-heatmap) from point data.
+
+- [Search](http://rpubs.com/bhaskarvk/leaflet-search) Markers. Geolocate using OSM Nominatum API.
+
+- [Pulsating](http://rpubs.com/bhaskarvk/leaflet-pulseIcon) and [Weather](http://rpubs.com/bhaskarvk/leaflet-weather) icons for markers.
+
+- [Tiles Caching](http://rpubs.com/bhaskarvk/TileLayer-Caching), [GPS](https://github.com/stefanocudini/leaflet-gps), and many more!
+
+---
+
+# TopoJSON Example
+
+
+```r
+library(leaflet.extras)
+fName &lt;- 'crimes_by_district.topojson'
+
+l &lt;- leaflet() %&gt;%
+  addBootstrapDependency() %&gt;%
+  setView(-75.14, 40, zoom = 11) %&gt;%
+  addProviderTiles(providers$CartoDB.Positron) %&gt;%
+  addGeoJSONChoropleth(
+    readr::read_file(fName), valueProperty ='incidents',
+    scale = 'OrRd', mode='q', steps = 5, padding = c(0.2,0),
+    popupProperty = propstoHTMLTable(
+      props = c('dist_numc', 'location', 'incidents', '_feature_id_string'),
+      table.attrs = list(class='table table-striped table-bordered'),drop.na = T),
+    labelProperty = JS('function(feature){return "WARD: " + feature.properties.dist_numc;}'),
+    color='#ffffff', weight=1, fillOpacity = 0.7,
+    highlightOptions = highlightOptions(
+      fillOpacity=1, weight=2, opacity=1, color='#000000',
+      bringToFront=TRUE, sendToBack = TRUE),
+    legendOptions = legendOptions(title='Crimes', position='topright'))
+```
+
+---
+
+# TopoJSON Example
+
+<div id="htmlwidget-5e9bc163805847c8044b" style="width:100%;height:450px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-5e9bc163805847c8044b">{"x":{"url":"widget_eg12.1.html","options":{"xdomain":"*","allowfullscreen":false}},"evals":[],"jsHooks":[]}</script>
+
+---
+
+class: inverse, center, middle
+
+# ADVANCED
+
+## Mostly for leaflet devs.
+
+---
+
+# Under the hood!
+
+- Not your grandpa's htmlwidget!
+
+- Source code organization
+```
+    leaflet
+    |_R               - Contains R files
+    |_javascript/src  - contains JS binding code written in ES2015.
+    |_inst/_htmlwidgets/
+      |_leaflet.js  - JS binding file transpiled from ES2015 files.
+      |_leaflet.yml - widget YAML file
+      |_lib/        - leaflet JS files + some plugins
+      |_plugins/    - some more plugins
+      |_examples/   - more examples than you can care for!
+```
+
+- You need Node.js and NPM for building.
+
+```bash
+    # Do this onetime
+    npm install -g grunt-cli
+    cd leaflet &amp;&amp; npm install
+    grunt build # Do this everytime you change javascript/src files.
+```
+
+---
+
+# Important files
+
+```
+  R
+  |_leaflet.R          - Widget initializing code
+  |_layers.R           - add/remove layers (tiles/markers/shapes)
+  |_normalize.R        - Data normalization/extraction
+  |_colors.R           - Color generation code
+  |_shiny.R            - Shiny stuff
+  |_utils.R            - odds-n-ends
+  |_plugin*R           - R code for misc plugins
+  
+  javascript/src
+  |_index.js               - Widget initialization JS code.
+  |_methods.js             - LeafletWidget.methods object
+  |_dataframe.js           - JS eq. of a R data.frame
+  |_layer-manager.js       - Manages layers
+  |_crs_utils.js           - projections support
+  |_cluster-layer-store.js - Marker clustering
+  |_util.js                - odds-n-ends
+  
+```
+
+---
+
+# Important R functions
+
+
+-  `derivePoints`/`derivePolygons` - extracts coordinates from various types of data.
+  
+- `resolveFormula` - extracts values for various params from data using formulas. e.g. `addMarkers(data=df, lat=~lat, lon=~lon, label=~name)`.
+  
+- `filterNULL` - removes NULLs from list. **Very useful!**
+  
+- `getMapData` - retrieves map data stored in the `leaflet()` instance.
+  
+- `invokeMethod` - Calls a JS method defined in `LeafletWidget.methods` JS Object.
+  
+- `htmlwidgets::onRender` - Used to invoke custom JS code after the map has been initialized.
+
+---
+
+# Important JS functions/objects
+
+- `L` - The leaflet JS object.
+
+- `LeafletWidget.methods` - All `add*` R functions call `invokeMethod` R function which calls JS functions in this object.
+
+- `LeafletWidge.utils` - Utility functions
+
+- `map` - The leaflet widget instance. Available in JS function passed to `htmlwidgets::onRender`.
+
+- `map.layerManager` - For managing layers.
+
+---
+
+class: inverse, center, middle
+
+# WRAP UP!
+
+---
+
+
+# Bhaskar V. Karambelkar
+
+- Information Security Data Scientist!
+
+- Thanks [Bob Rudis](https://rud.is/b/) for GIS/mapping mentorship.
+
+- Thanks [Joe Cheng](https://twitter.com/jcheng) for opportunity to contribute to leaflet.
+
+- Thanks [Kent Russel](https://twitter.com/timelyportfolio), [Tim  Appelhans](https://twitter.com/TimSalabim3), [Michael Sumner](https://twitter.com/mdsumner) for sharing htmlwwidgets and GIS knowledge.
+
+---
+
+class: inverse, center, middle
+
+# THANK YOU!
+
+### **Rpubs**: [bhaskarvk](http://rpubs.com/bhaskarvk)
+
+Tons of leaflet examples!
+
+&lt;hr/&gt;&lt;br/&gt;
+
+### Twitter: [@bhaskar_vk](https://twitter.com/bhaskar_vk)
+
+### LinkedIn: [bhaskarvk](https://www.linkedin.com/in/bhaskarvk)
+
+### Github: [bhaskarvk](https://github.com/bhaskarvk)
+
+### Blog: [www.karambelkar.info](http://www.karambelkar.info/)
+    </textarea>
+<script src="libs/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"countIncrementalSlides": false,
+"navigation": {
+"scroll": false,
+"click": false
+}
+});
+if (window.HTMLWidgets) slideshow.on('showSlide', function (slide) {setTimeout(function() {window.dispatchEvent(new Event('resize'));}, 100)});</script>
+
+  </body>
+</html>
